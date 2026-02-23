@@ -1,0 +1,23 @@
+{
+  "name": "browserfly",
+  "version": "1.0.0",
+  "description": "Your AI agent lives in the browser. Local. Private. Yours.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "vitest": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "jsdom": "^24.0.0"
+  },
+  "author": "Daouda Abdoul Anzize <anzizecontact@proton.me>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tryboy869/browserfly.git"
+  },
+  "keywords": ["ai", "browser", "local-first", "llm", "agent", "privacy"]
+}
