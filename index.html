@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browserfly — Your AI Agent Lives in the Browser</title>
+<meta name="description" content="Local. Private. Yours. A browser-native AI agent interface.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Syne:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+/* ── RESET ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Syne',system-ui,sans-serif;background:#080810;color:#E2E2F0;min-height:100vh;overflow-x:hidden;line-height:1.6}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* ── CSS VARS ── */
+:root{
+  --p:#6C63FF;--s:#00D4FF;--a:#FF6B9D;
+  --bg:#080810;--bg1:#0E0E1A;--bg2:#141424;
+  --glass:rgba(108,99,255,.07);--gb:rgba(108,99,255,.25);
+  --ok:#00E676;--warn:#FFB300;--err:#FF5252;--info:#448AFF;
+  --tx:#E2E2F0;--txm:#7070A0;
+}
+
+/* ── BACKGROUND BUTTERFLIES ── */
+.bg-wrap{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bgbf{position:absolute;opacity:.12;will-change:transform}
+@keyframes d1{0%{transform:translate(-80px,15vh) rotate(0deg)}100%{transform:translate(110vw,55vh) rotate(360deg)}}
+@keyframes d2{0%{transform:translate(110vw,8vh) rotate(0deg)}100%{transform:translate(-80px,70vh) rotate(-360deg)}}
+@keyframes d3{0%{transform:translate(40vw,-60px) rotate(0deg)}100%{transform:translate(70vw,110vh) rotate(360deg)}}
+@keyframes d4{0%{transform:translate(-60px,75vh) rotate(0deg)}100%{transform:translate(110vw,20vh) rotate(-360deg)}}
+@keyframes d5{0%{transform:translate(85vw,110vh) rotate(0deg)}100%{transform:translate(20vw,-60px) rotate(360deg)}}
+@keyframes d6{0%{transform:translate(10vw,-60px) rotate(0deg)}100%{transform:translate(90vw,110vh) rotate(-360deg)}}
+@keyframes d7{0%{transform:translate(110vw,50vh) rotate(0deg)}100%{transform:translate(-80px,30vh) rotate(360deg)}}
+@keyframes d8{0%{transform:translate(60vw,110vh) rotate(0deg)}100%{transform:translate(10vw,-60px) rotate(-360deg)}}
+.bgbf:nth-child(1){width:38px;height:30px;animation:d1 20s linear infinite}
+.bgbf:nth-child(2){width:28px;height:22px;animation:d2 25s linear infinite;animation-delay:-6s}
+.bgbf:nth-child(3){width:44px;height:35px;animation:d3 16s linear infinite;animation-delay:-3s}
+.bgbf:nth-child(4){width:32px;height:25px;animation:d4 22s linear infinite;animation-delay:-9s}
+.bgbf:nth-child(5){width:36px;height:28px;animation:d5 18s linear infinite;animation-delay:-2s}
+.bgbf:nth-child(6){width:42px;height:33px;animation:d6 21s linear infinite;animation-delay:-7s}
+.bgbf:nth-child(7){width:30px;height:24px;animation:d7 24s linear infinite;animation-delay:-4s}
+.bgbf:nth-child(8){width:48px;height:38px;animation:d8 14s linear infinite;animation-delay:-11s}
+
+/* ── HEADER ── */
+.hdr{position:fixed;top:0;left:0;right:0;height:66px;background:rgba(8,8,16,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--gb);z-index:999;display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:12px}
+.hdr-left{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hdr-logo-img{width:36px;height:29px;display:block}
+.hdr-brand{font-family:'Orbitron',sans-serif;font-size:1.3rem;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.05em}
+.hdr-nav{display:flex;gap:4px;flex:1;justify-content:center}
+.nav-btn{padding:9px 18px;border:none;background:transparent;color:var(--txm);font-family:'Syne',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;border-radius:8px;transition:all .25s;position:relative;white-space:nowrap}
+.nav-btn:hover{color:var(--tx);background:var(--glass)}
+.nav-btn.active{color:var(--tx);background:var(--glass)}
+.nav-btn.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:linear-gradient(90deg,var(--p),var(--s));border-radius:1px}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.lang-wrap{display:flex;gap:3px;background:var(--bg1);padding:3px;border-radius:7px}
+.lang-btn{padding:5px 10px;border:none;background:transparent;color:var(--txm);font-size:.75rem;font-weight:600;cursor:pointer;border-radius:5px;transition:all .2s}
+.lang-btn.active{background:var(--p);color:#fff}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.65;transform:scale(1.2)}}
+.hdr-menu-btn{display:none;flex-direction:column;gap:4px;padding:8px;background:transparent;border:none;cursor:pointer}
+.hdr-menu-btn span{width:22px;height:2px;background:var(--tx);border-radius:1px;transition:all .3s}
+
+/* ── MAIN ── */
+.main{padding-top:66px;min-height:100vh;position:relative;z-index:1}
+.tab{display:none;padding:28px 24px;max-width:1360px;margin:0 auto}
+.tab.active{display:block}
+@keyframes tabIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.tab.active{animation:tabIn .3s ease}
+
+/* ── HERO ── */
+.hero{text-align:center;padding:52px 24px 36px;background:linear-gradient(180deg,rgba(108,99,255,.04) 0%,transparent 100%);position:relative;margin-bottom:32px;border-radius:16px;border:1px solid var(--gb)}
+.hero::before{content:'';position:absolute;inset:0;border-radius:16px;background-image:linear-gradient(rgba(108,99,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(108,99,255,.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none}
+.hero-title{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px}
+.hero-bf{width:72px;height:57px;animation:bfPulse 3s ease-in-out infinite}
+@keyframes bfPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.hero-letters{font-family:'Orbitron',sans-serif;font-size:2.8rem;font-weight:900;display:flex}
+.ltr{opacity:0;animation:ltrIn .35s forwards;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+@keyframes ltrIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.ltr:nth-child(1){animation-delay:.05s}.ltr:nth-child(2){animation-delay:.12s}.ltr:nth-child(3){animation-delay:.19s}
+.ltr:nth-child(4){animation-delay:.26s}.ltr:nth-child(5){animation-delay:.33s}.ltr:nth-child(6){animation-delay:.4s}
+.ltr:nth-child(7){animation-delay:.47s}.ltr:nth-child(8){animation-delay:.54s}.ltr:nth-child(9){animation-delay:.61s}.ltr:nth-child(10){animation-delay:.68s}
+.hero-sub{font-size:1rem;color:var(--txm);margin-bottom:28px;max-width:520px;margin-left:auto;margin-right:auto}
+.hero-sub span{color:var(--p)}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{padding:11px 26px;border-radius:10px;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .25s;border:none;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn-p{background:linear-gradient(135deg,var(--p),#8B5CF6);color:#fff;box-shadow:0 4px 20px rgba(108,99,255,.35)}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(108,99,255,.5)}
+.btn-s{background:var(--glass);color:var(--s);border:1px solid var(--gb)}
+.btn-s:hover{background:rgba(0,212,255,.1);transform:translateY(-2px)}
+.btn-sm{padding:7px 16px;font-size:.8rem}
+.btn-err{background:rgba(255,82,82,.15);color:var(--err);border:1px solid rgba(255,82,82,.3)}
+
+/* ── CARDS / PANELS ── */
+.panel{background:var(--bg1);border:1px solid var(--gb);border-radius:14px;padding:24px;margin-bottom:20px}
+.panel-title{font-size:1rem;font-weight:800;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+
+/* ── STATS ── */
+.stat-card{background:var(--bg2);border:1px solid var(--gb);border-radius:12px;padding:20px;text-align:center;transition:transform .2s,box-shadow .2s}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(108,99,255,.2)}
+.stat-icon{font-size:1.8rem;margin-bottom:8px}
+.stat-val{font-family:'Orbitron',sans-serif;font-size:1.7rem;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-lbl{font-size:.75rem;color:var(--txm);text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
+
+/* ── AGENT STATUS ── */
+.agent-bar{background:linear-gradient(135deg,rgba(108,99,255,.1),rgba(0,212,255,.05));border:1px solid var(--gb);border-radius:12px;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.agent-main{display:flex;align-items:center;gap:14px}
+.agent-icon{font-size:2rem;line-height:1}
+.agent-name{font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:700;color:var(--tx)}
+.agent-status-line{font-size:.78rem;color:var(--txm);margin-top:3px}
+.agent-caps{display:flex;gap:8px;flex-wrap:wrap}
+.cap-badge{padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:700;background:rgba(108,99,255,.15);color:var(--p);border:1px solid rgba(108,99,255,.3)}
+.cap-badge.ok{background:rgba(0,230,118,.1);color:var(--ok);border-color:rgba(0,230,118,.3)}
+.cap-badge.warn{background:rgba(255,179,0,.1);color:var(--warn);border-color:rgba(255,179,0,.3)}
+.cap-badge.err{background:rgba(255,82,82,.1);color:var(--err);border-color:rgba(255,82,82,.3)}
+
+/* ── MODEL CARDS ── */
+.model-card{background:var(--bg2);border:1px solid var(--gb);border-radius:12px;padding:18px;transition:all .2s;position:relative}
+.model-card:hover{border-color:var(--p);box-shadow:0 4px 20px rgba(108,99,255,.2)}
+.model-card.primary{border-color:var(--ok)}
+.model-card.fallback{border-color:var(--warn)}
+.model-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.model-name{font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:500;color:var(--tx)}
+.model-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.mbadge{font-size:.65rem;padding:2px 7px;border-radius:10px;font-weight:600}
+.mb-chat{background:rgba(68,138,255,.15);color:#448AFF}
+.mb-vision{background:rgba(156,39,176,.15);color:#CE93D8}
+.mb-reason{background:rgba(255,152,0,.15);color:#FFB74D}
+.mb-code{background:rgba(0,200,83,.15);color:#69F0AE}
+.mb-fast{background:rgba(0,230,118,.15);color:var(--ok)}
+.mb-long{background:rgba(255,179,0,.15);color:var(--warn)}
+.mb-local{background:rgba(108,99,255,.15);color:var(--p)}
+.model-meta{font-size:.75rem;color:var(--txm);margin-bottom:12px;display:flex;flex-direction:column;gap:4px}
+.model-meta-row{display:flex;justify-content:space-between}
+.model-meta-val{color:var(--tx);font-family:'JetBrains Mono',monospace}
+.model-actions{display:flex;gap:7px;flex-wrap:wrap}
+.model-tag{position:absolute;top:10px;right:10px;font-size:.65rem;padding:2px 8px;border-radius:10px;font-weight:700}
+.tag-primary{background:rgba(0,230,118,.15);color:var(--ok);border:1px solid rgba(0,230,118,.3)}
+.tag-fallback{background:rgba(255,179,0,.15);color:var(--warn);border:1px solid rgba(255,179,0,.3)}
+
+/* ── FORM ELEMENTS ── */
+.form-group{margin-bottom:18px}
+.form-label{display:block;font-size:.8rem;font-weight:700;color:var(--txm);margin-bottom:7px;text-transform:uppercase;letter-spacing:.06em}
+.form-input{width:100%;padding:11px 14px;background:var(--bg2);border:1px solid var(--gb);border-radius:9px;color:var(--tx);font-family:'Syne',sans-serif;font-size:.88rem;transition:border-color .2s}
+.form-input:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.form-input[type=password]{font-family:'JetBrains Mono',monospace;letter-spacing:.1em}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237070A0'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer}
+.form-textarea{min-height:160px;resize:vertical;font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.5}
+.api-row{display:flex;gap:8px;align-items:center}
+.api-row .form-input{flex:1}
+.api-status{font-size:.7rem;padding:3px 9px;border-radius:10px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.api-status.valid{background:rgba(0,230,118,.1);color:var(--ok);border:1px solid rgba(0,230,118,.3)}
+.api-status.invalid{background:rgba(255,82,82,.1);color:var(--err);border:1px solid rgba(255,82,82,.3)}
+.api-status.checking{background:rgba(68,138,255,.1);color:var(--info);border:1px solid rgba(68,138,255,.3)}
+.api-status.empty{background:var(--bg2);color:var(--txm);border:1px solid var(--gb)}
+
+/* ── SUB TABS ── */
+.sub-nav{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.sub-btn{padding:8px 16px;border:1px solid var(--gb);background:transparent;color:var(--txm);font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;border-radius:8px;cursor:pointer;transition:all .2s}
+.sub-btn.active{background:var(--glass);color:var(--tx);border-color:var(--p)}
+.sub-panel{display:none}.sub-panel.active{display:block}
+
+/* ── LOGS ── */
+.log-filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.log-list{display:flex;flex-direction:column;gap:1px;max-height:520px;overflow-y:auto;border-radius:10px;border:1px solid var(--gb)}
+.log-entry{display:flex;gap:12px;align-items:flex-start;padding:10px 14px;background:var(--bg2);border-bottom:1px solid rgba(108,99,255,.08);font-size:.78rem;transition:background .15s}
+.log-entry:hover{background:var(--bg1)}
+.log-entry:last-child{border-bottom:none}
+.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.log-dot.success{background:var(--ok);box-shadow:0 0 5px var(--ok)}
+.log-dot.info{background:var(--info)}
+.log-dot.warning{background:var(--warn);box-shadow:0 0 5px var(--warn)}
+.log-dot.error{background:var(--err);box-shadow:0 0 5px var(--err)}
+.log-dot.debug{background:var(--txm)}
+.log-time{color:var(--txm);font-family:'JetBrains Mono',monospace;font-size:.7rem;flex-shrink:0;width:72px}
+.log-action{font-weight:700;color:var(--tx);flex-shrink:0;min-width:180px}
+.log-detail{color:var(--txm);font-family:'JetBrains Mono',monospace;font-size:.7rem;flex:1;word-break:break-all}
+
+/* ── SELF-TEST PANEL ── */
+.test-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.test-row{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg2);border-radius:8px;border:1px solid var(--gb);font-size:.78rem}
+.test-icon{font-size:.9rem;flex-shrink:0}
+.test-name{flex:1;color:var(--tx)}
+.test-result{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:8px}
+.test-result.pass{background:rgba(0,230,118,.1);color:var(--ok)}
+.test-result.fail{background:rgba(255,82,82,.1);color:var(--err)}
+.test-result.skip{background:var(--bg);color:var(--txm)}
+.test-summary{display:flex;gap:16px;margin-bottom:14px;padding:12px 16px;background:var(--bg2);border-radius:10px;border:1px solid var(--gb);font-size:.85rem}
+.ts-item{display:flex;align-items:center;gap:6px;font-weight:700}
+
+/* ── ALERTS ── */
+.alert{padding:12px 16px;border-radius:10px;font-size:.82rem;margin-bottom:14px}
+.alert-ok{background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.25);color:var(--ok)}
+.alert-warn{background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.25);color:var(--warn)}
+.alert-err{background:rgba(255,82,82,.08);border:1px solid rgba(255,82,82,.25);color:var(--err)}
+.alert-info{background:rgba(68,138,255,.08);border:1px solid rgba(68,138,255,.25);color:var(--info)}
+
+/* ── CHART ── */
+.chart-wrap{position:relative;height:220px}
+
+/* ── FOOTER ── */
+.footer{background:var(--bg1);border-top:1px solid var(--gb);padding:36px 24px 24px;position:relative;z-index:1;margin-top:60px}
+.footer-inner{max-width:1360px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap}
+.footer-brand{display:flex;flex-direction:column;gap:8px}
+.footer-logo-row{display:flex;align-items:center;gap:8px}
+.footer-logo-img{width:28px;height:22px}
+.footer-name{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.footer-tagline{font-size:.75rem;color:var(--txm)}
+.footer-links{display:flex;gap:18px;flex-wrap:wrap}
+.footer-link{color:var(--txm);text-decoration:none;font-size:.8rem;font-weight:600;transition:color .2s}
+.footer-link:hover{color:var(--p)}
+.footer-author{font-size:.75rem;color:var(--txm);text-align:right}
+.footer-author strong{color:var(--p)}
+.footer-bottom{max-width:1360px;margin:20px auto 0;padding-top:16px;border-top:1px solid var(--gb);display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--txm);flex-wrap:wrap;gap:8px}
+
+/* ── HF SEARCH ── */
+.hf-search-row{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.hf-search-row .form-input{flex:1;min-width:200px}
+.hf-meta{font-size:.72rem;color:var(--txm);margin-top:6px}
+.ram-badge{font-size:.68rem;padding:2px 8px;border-radius:10px;font-weight:700}
+.ram-any{background:rgba(0,230,118,.1);color:var(--ok)}
+.ram-4gb{background:rgba(68,138,255,.1);color:var(--info)}
+.ram-8gb{background:rgba(255,179,0,.1);color:var(--warn)}
+.ram-gpu{background:rgba(255,82,82,.1);color:var(--err)}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:48px 24px;color:var(--txm)}
+.empty-icon{font-size:2.4rem;margin-bottom:12px}
+.empty-txt{font-size:.9rem}
+
+/* ── SPINNER ── */
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--gb);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-wrap{display:flex;align-items:center;justify-content:center;gap:10px;padding:32px;color:var(--txm);font-size:.85rem}
+
+/* ── SLIDER ── */
+.slider-wrap{margin-bottom:14px}
+.slider-row{display:flex;align-items:center;gap:12px}
+.slider-row input[type=range]{flex:1;height:4px;border-radius:2px;appearance:none;background:var(--gb);cursor:pointer;accent-color:var(--p)}
+.slider-val{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--p);min-width:24px;text-align:right;font-weight:700}
+.slider-lbl{font-size:.78rem;color:var(--txm);flex:1}
+
+/* ── ROUTING RULES ── */
+.rule-card{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg2);border-radius:9px;border:1px solid var(--gb);margin-bottom:8px}
+.rule-icon{font-size:1.1rem}
+.rule-info{flex:1}
+.rule-name{font-size:.82rem;font-weight:700;color:var(--tx)}
+.rule-desc{font-size:.72rem;color:var(--txm)}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--bg);border-radius:22px;transition:.25s;border:1px solid var(--gb)}
+.toggle-slider::before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:var(--txm);border-radius:50%;transition:.25s}
+.toggle input:checked + .toggle-slider{background:var(--p);border-color:var(--p)}
+.toggle input:checked + .toggle-slider::before{transform:translateX(18px);background:#fff}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .hdr-nav{display:none;position:fixed;top:66px;left:0;right:0;background:rgba(8,8,16,.97);backdrop-filter:blur(18px);flex-direction:column;padding:16px;gap:4px;border-bottom:1px solid var(--gb)}
+  .hdr-nav.open{display:flex}
+  .hdr-menu-btn{display:flex}
+  .hero-letters{font-size:1.8rem}
+  .hero-bf{width:50px;height:40px}
+  .tab{padding:16px}
+  .footer-author{text-align:left}
+  .footer-bottom{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:480px){
+  .hero-letters{font-size:1.4rem}
+  .hdr-brand{font-size:1rem}
+  .grid2,.grid3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Background butterflies (pure CSS) -->
+<div class="bg-wrap" id="bgWrap"></div>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-left">
+    <img src="assets/logo.svg" class="hdr-logo-img" alt="🦋" id="headerLogo">
+    <span class="hdr-brand">Browserfly</span>
+  </div>
+  <nav class="hdr-nav" id="mainNav">
+    <button class="nav-btn active" data-tab="dashboard" data-i18n="nav.dashboard">Dashboard</button>
+    <button class="nav-btn" data-tab="models" data-i18n="nav.models">Models</button>
+    <button class="nav-btn" data-tab="config" data-i18n="nav.config">Configuration</button>
+    <button class="nav-btn" data-tab="logs" data-i18n="nav.logs">Activity Logs</button>
+    <button class="nav-btn" data-tab="tests" data-i18n="nav.tests">Self-Tests</button>
+  </nav>
+  <div class="hdr-right">
+    <div class="lang-wrap">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="fr">FR</button>
+    </div>
+    <div class="status-dot" id="statusDot" title="Agent status"></div>
+    <button class="hdr-menu-btn" id="menuBtn" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- ══ DASHBOARD TAB ══ -->
+  <div class="tab active" id="tab-dashboard">
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-title">
+        <img src="assets/logo.svg" class="hero-bf" alt="🦋">
+        <div class="hero-letters">
+          <span class="ltr">B</span><span class="ltr">r</span><span class="ltr">o</span><span class="ltr">w</span>
+          <span class="ltr">s</span><span class="ltr">e</span><span class="ltr">r</span>
+          <span class="ltr">f</span><span class="ltr">l</span><span class="ltr">y</span>
+        </div>
+      </div>
+      <p class="hero-sub" data-i18n="hero.tagline">Your AI agent lives in the browser. <span>Local. Private. Yours.</span></p>
+      <div class="hero-btns">
+        <button class="btn btn-p" onclick="switchTab('config')" data-i18n="hero.cta.start">⚙️ Get Started</button>
+        <button class="btn btn-s" onclick="switchTab('models')" data-i18n="hero.cta.models">🔍 View Models</button>
+      </div>
+    </div>
+
+    <!-- Agent Status Bar -->
+    <div class="agent-bar" id="agentBar">
+      <div class="agent-main">
+        <div class="agent-icon">🦋</div>
+        <div>
+          <div class="agent-name">Fly <span style="font-size:.75rem;font-weight:400;font-family:Syne,sans-serif">(Agent)</span></div>
+          <div class="agent-status-line" id="agentStatusLine" data-i18n="agent.scanning">Scanning capabilities…</div>
+        </div>
+      </div>
+      <div class="agent-caps" id="agentCaps">
+        <span class="cap-badge warn" data-i18n="agent.initializing">Initializing…</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid3" style="margin-bottom:20px">
+      <div class="stat-card">
+        <div class="stat-icon">🔌</div>
+        <div class="stat-val" id="statProviders">0</div>
+        <div class="stat-lbl" data-i18n="stats.providers">Providers Connected</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🤖</div>
+        <div class="stat-val" id="statModels">0</div>
+        <div class="stat-lbl" data-i18n="stats.models">Models Available</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📋</div>
+        <div class="stat-val" id="statLogs">0</div>
+        <div class="stat-lbl" data-i18n="stats.logs">Activity Logs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⚙️</div>
+        <div class="stat-val" id="statWorkers">2</div>
+        <div class="stat-lbl" data-i18n="stats.workers">Workers Active</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🧠</div>
+        <div class="stat-val" id="statMemory">0</div>
+        <div class="stat-lbl" data-i18n="stats.memory">Memory Chunks</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔒</div>
+        <div class="stat-val" id="statPrivacy" style="font-size:1.1rem">AUTO</div>
+        <div class="stat-lbl" data-i18n="stats.routing">Routing Mode</div>
+      </div>
+    </div>
+
+    <!-- Request chart -->
+    <div class="panel">
+      <div class="panel-title">📈 <span data-i18n="dash.chart">Requests Overview</span></div>
+      <div class="chart-wrap"><canvas id="reqChart"></canvas></div>
+    </div>
+
+    <!-- Recent activity -->
+    <div class="panel">
+      <div class="panel-title">🕐 <span data-i18n="dash.recent">Recent Activity</span></div>
+      <div id="recentFeed"><div class="empty"><div class="empty-icon">💤</div><div class="empty-txt" data-i18n="dash.no_activity">No activity yet</div></div></div>
+    </div>
+  </div>
+
+  <!-- ══ MODELS TAB ══ -->
+  <div class="tab" id="tab-models">
+    <div class="sub-nav">
+      <button class="sub-btn active" data-sub="cloud" data-i18n="models.cloud">☁️ Cloud Providers</button>
+      <button class="sub-btn" data-sub="local" data-i18n="models.local">🏠 Local Models (HuggingFace)</button>
+    </div>
+
+    <!-- Cloud sub-panel -->
+    <div class="sub-panel active" id="sub-cloud">
+      <div class="panel">
+        <div class="panel-title">☁️ <span data-i18n="models.cloud_title">Cloud AI Providers</span></div>
+        <p style="font-size:.82rem;color:var(--txm);margin-bottom:18px" data-i18n="models.cloud_desc">Add your API keys in Configuration, then click Fetch Models to see available models live.</p>
+        <div id="cloudProvidersGrid" class="grid2">
+          <!-- injected by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Local HF sub-panel -->
+    <div class="sub-panel" id="sub-local">
+      <div class="panel">
+        <div class="panel-title">🏠 <span data-i18n="models.hf_search">HuggingFace Model Search</span></div>
+        <div class="hf-search-row">
+          <input type="text" class="form-input" id="hfQuery" placeholder="Search models (e.g. Qwen, phi, llama…)" data-i18n-placeholder="models.hf_placeholder">
+          <select class="form-input form-select" id="hfTask" style="width:180px">
+            <option value="text-generation">Text Generation</option>
+            <option value="text2text-generation">Text2Text</option>
+            <option value="question-answering">Q&A</option>
+            <option value="automatic-speech-recognition">Speech Recognition</option>
+            <option value="image-classification">Image Classification</option>
+          </select>
+          <button class="btn btn-p" id="hfSearchBtn" data-i18n="models.hf_go">🔍 Search</button>
+        </div>
+        <!-- Recommended -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:.78rem;color:var(--txm);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px" data-i18n="models.hf_recommended">⭐ Curated Recommendations</div>
+          <div id="hfRecommended" class="grid2"></div>
+        </div>
+        <div style="font-size:.78rem;color:var(--txm);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px" data-i18n="models.hf_results">Search Results</div>
+        <div id="hfResults"><div class="empty"><div class="empty-icon">🔍</div><div class="empty-txt" data-i18n="models.hf_empty">Search to find models</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CONFIGURATION TAB ══ -->
+  <div class="tab" id="tab-config">
+    <div class="sub-nav">
+      <button class="sub-btn active" data-sub="apikeys" data-i18n="config.keys">🔑 API Keys</button>
+      <button class="sub-btn" data-sub="routing" data-i18n="config.routing">🗺️ Routing</button>
+      <button class="sub-btn" data-sub="soul" data-i18n="config.soul">✨ Soul File</button>
+      <button class="sub-btn" data-sub="integrations" data-i18n="config.integrations">🔗 Integrations</button>
+    </div>
+
+    <!-- API Keys -->
+    <div class="sub-panel active" id="sub-apikeys">
+      <div class="panel" id="apiKeysPanel"><!-- injected --></div>
+    </div>
+
+    <!-- Routing -->
+    <div class="sub-panel" id="sub-routing">
+      <div class="panel">
+        <div class="panel-title">🗺️ <span data-i18n="routing.title">Task Routing</span></div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="routing.primary">Primary Provider</label>
+          <select class="form-input form-select" id="routePrimary">
+            <option value="">— Select —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="routing.primary_model">Primary Model</label>
+          <select class="form-input form-select" id="routePrimaryModel"><option value="">— Select provider first —</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="routing.fallback">Fallback Provider</label>
+          <select class="form-input form-select" id="routeFallback">
+            <option value="">— None —</option>
+          </select>
+        </div>
+        <div style="font-size:.82rem;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.07em;margin:20px 0 12px" data-i18n="routing.rules">Routing Rules</div>
+        <div id="routingRules"><!-- injected --></div>
+        <div style="margin-top:16px">
+          <div class="form-label" data-i18n="routing.complexity">Complexity Threshold for Cloud</div>
+          <div class="slider-wrap">
+            <div class="slider-row">
+              <span class="slider-lbl" data-i18n="routing.threshold">Threshold (0=always local, 10=always cloud)</span>
+              <input type="range" min="0" max="10" value="6" id="complexThreshold">
+              <span class="slider-val" id="complexThresholdVal">6</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-p" style="margin-top:12px" id="saveRoutingBtn" data-i18n="routing.save">💾 Save Routing</button>
+      </div>
+    </div>
+
+    <!-- Soul File -->
+    <div class="sub-panel" id="sub-soul">
+      <div class="panel">
+        <div class="panel-title">✨ <span data-i18n="soul.title">Soul File — Agent Identity</span></div>
+        <p style="font-size:.8rem;color:var(--txm);margin-bottom:14px" data-i18n="soul.desc">Define your agent's personality, values and memory preferences as JSON.</p>
+        <textarea class="form-input form-textarea" id="soulEditor" style="min-height:280px;font-size:.78rem"></textarea>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn btn-p" id="saveSoulBtn" data-i18n="soul.save">💾 Save Soul</button>
+          <button class="btn btn-s" id="resetSoulBtn" data-i18n="soul.reset">↺ Reset Default</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Integrations -->
+    <div class="sub-panel" id="sub-integrations">
+      <div class="panel">
+        <div class="panel-title">🔗 <span data-i18n="integ.title">Integrations</span></div>
+        <div class="grid2" id="integrationsGrid"><!-- injected --></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ LOGS TAB ══ -->
+  <div class="tab" id="tab-logs">
+    <div class="panel">
+      <div class="panel-title" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <span>📋 <span data-i18n="logs.title">Activity Logs</span></span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-s btn-sm" id="exportLogsBtn" data-i18n="logs.export">⬇️ Export CSV</button>
+          <button class="btn btn-err btn-sm" id="clearLogsBtn" data-i18n="logs.clear">🗑️ Clear All</button>
+        </div>
+      </div>
+      <div class="log-filters">
+        <select class="form-input form-select" id="logLevelFilter" style="width:130px">
+          <option value="">All Levels</option>
+          <option value="success">✅ Success</option>
+          <option value="info">ℹ️ Info</option>
+          <option value="warning">⚠️ Warning</option>
+          <option value="error">❌ Error</option>
+          <option value="debug">🔧 Debug</option>
+        </select>
+        <input type="text" class="form-input" id="logSearch" placeholder="Search logs…" style="flex:1;min-width:150px">
+        <input type="date" class="form-input" id="logFrom" style="width:148px">
+        <input type="date" class="form-input" id="logTo" style="width:148px">
+      </div>
+      <div class="log-list" id="logList">
+        <div class="empty"><div class="empty-icon">📋</div><div class="empty-txt" data-i18n="logs.empty">No logs yet</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SELF-TESTS TAB ══ -->
+  <div class="tab" id="tab-tests">
+    <div class="panel">
+      <div class="panel-title" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <span>🧪 <span data-i18n="tests.title">Browser Self-Tests</span></span>
+        <button class="btn btn-p btn-sm" id="runTestsBtn" data-i18n="tests.run">▶️ Re-run Tests</button>
+      </div>
+      <p style="font-size:.8rem;color:var(--txm);margin-bottom:14px" data-i18n="tests.desc">Tests run automatically on startup. They verify your browser capabilities and app internals.</p>
+      <div class="test-summary" id="testSummary">
+        <div class="ts-item"><span style="color:var(--ok)">✅</span> <span id="testPass">0</span> <span style="color:var(--txm);font-weight:400" data-i18n="tests.passed">passed</span></div>
+        <div class="ts-item"><span style="color:var(--err)">❌</span> <span id="testFail">0</span> <span style="color:var(--txm);font-weight:400" data-i18n="tests.failed">failed</span></div>
+        <div class="ts-item"><span style="color:var(--warn)">⏭</span> <span id="testSkip">0</span> <span style="color:var(--txm);font-weight:400" data-i18n="tests.skipped">skipped</span></div>
+        <div class="ts-item" id="testTime" style="color:var(--txm);font-weight:400;font-size:.75rem"></div>
+      </div>
+      <div class="test-grid" id="testGrid">
+        <div class="loading-wrap"><div class="spinner"></div> Running tests…</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo-row">
+        <img src="assets/logo.svg" class="footer-logo-img" alt="🦋">
+        <span class="footer-name">Browserfly</span>
+      </div>
+      <div class="footer-tagline" data-i18n="footer.tagline">Local. Private. Yours.</div>
+    </div>
+    <div class="footer-links">
+      <a class="footer-link" href="https://github.com/tryboy869/browserfly" target="_blank">GitHub</a>
+      <a class="footer-link" href="#" onclick="switchTab('config')">Config</a>
+      <a class="footer-link" href="#" onclick="switchTab('logs')">Logs</a>
+      <a class="footer-link" href="#" onclick="switchTab('tests')">Tests</a>
+    </div>
+    <div class="footer-author">
+      Built by <strong>Daouda Abdoul Anzize</strong><br>
+      <span style="font-size:.7rem">Nexus Studio · Cotonou, Bénin</span>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Browserfly — MIT License</span>
+    <span data-i18n="footer.version">v1.0.0</span>
+  </div>
+</footer>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════════════════
+// TRANSLATIONS
+// ═══════════════════════════════════════════════════════════════════
+const T = {
+  en: {
+    'nav.dashboard':'Dashboard','nav.models':'Models','nav.config':'Configuration',
+    'nav.logs':'Activity Logs','nav.tests':'Self-Tests',
+    'hero.tagline':'Your AI agent lives in the browser. Local. Private. Yours.',
+    'hero.cta.start':'⚙️ Get Started','hero.cta.models':'🔍 View Models',
+    'agent.scanning':'Scanning capabilities…','agent.initializing':'Initializing…',
+    'stats.providers':'Providers Connected','stats.models':'Models Available',
+    'stats.logs':'Activity Logs','stats.workers':'Workers Active',
+    'stats.memory':'Memory Chunks','stats.routing':'Routing Mode',
+    'dash.chart':'Requests Overview','dash.recent':'Recent Activity','dash.no_activity':'No activity yet',
+    'models.cloud':'☁️ Cloud Providers','models.local':'🏠 Local Models (HuggingFace)',
+    'models.cloud_title':'Cloud AI Providers',
+    'models.cloud_desc':'Add your API keys in Configuration, then click Fetch Models to see available models live.',
+    'models.hf_search':'HuggingFace Model Search','models.hf_placeholder':'Search models (e.g. Qwen, phi, llama…)',
+    'models.hf_go':'🔍 Search','models.hf_recommended':'⭐ Curated Recommendations',
+    'models.hf_results':'Search Results','models.hf_empty':'Search to find models',
+    'models.fetch':'Fetch Models','models.fetching':'Fetching…','models.no_key':'Add API key first',
+    'models.set_primary':'⭐ Set Primary','models.set_fallback':'🔁 Set Fallback','models.test':'▶ Test',
+    'config.keys':'🔑 API Keys','config.routing':'🗺️ Routing','config.soul':'✨ Soul File',
+    'config.integrations':'🔗 Integrations',
+    'routing.title':'Task Routing','routing.primary':'Primary Provider','routing.primary_model':'Primary Model',
+    'routing.fallback':'Fallback Provider','routing.rules':'Routing Rules',
+    'routing.complexity':'Complexity Routing','routing.threshold':'Threshold (0=always local, 10=always cloud)',
+    'routing.save':'💾 Save Routing',
+    'soul.title':'Soul File — Agent Identity',
+    'soul.desc':'Define your agent\'s personality, values and memory preferences as JSON.',
+    'soul.save':'💾 Save Soul','soul.reset':'↺ Reset Default',
+    'integ.title':'Integrations',
+    'logs.title':'Activity Logs','logs.export':'⬇️ Export CSV','logs.clear':'🗑️ Clear All','logs.empty':'No logs yet',
+    'tests.title':'Browser Self-Tests','tests.desc':'Tests run automatically on startup.',
+    'tests.run':'▶️ Re-run Tests','tests.passed':'passed','tests.failed':'failed','tests.skipped':'skipped',
+    'footer.tagline':'Local. Private. Yours.','footer.version':'v1.0.0',
+  },
+  fr: {
+    'nav.dashboard':'Tableau de bord','nav.models':'Modèles','nav.config':'Configuration',
+    'nav.logs':'Journaux','nav.tests':'Auto-Tests',
+    'hero.tagline':'Votre agent IA vit dans le navigateur. Local. Privé. À vous.',
+    'hero.cta.start':'⚙️ Démarrer','hero.cta.models':'🔍 Voir les modèles',
+    'agent.scanning':'Analyse des capacités…','agent.initializing':'Initialisation…',
+    'stats.providers':'Fournisseurs Connectés','stats.models':'Modèles Disponibles',
+    'stats.logs':'Journaux d\'activité','stats.workers':'Workers Actifs',
+    'stats.memory':'Blocs Mémoire','stats.routing':'Mode Routage',
+    'dash.chart':'Aperçu des Requêtes','dash.recent':'Activité Récente','dash.no_activity':'Pas encore d\'activité',
+    'models.cloud':'☁️ Fournisseurs Cloud','models.local':'🏠 Modèles Locaux (HuggingFace)',
+    'models.cloud_title':'Fournisseurs IA Cloud',
+    'models.cloud_desc':'Ajoutez vos clés API dans Configuration, puis cliquez Charger Modèles.',
+    'models.hf_search':'Recherche HuggingFace','models.hf_placeholder':'Rechercher (ex: Qwen, phi, llama…)',
+    'models.hf_go':'🔍 Rechercher','models.hf_recommended':'⭐ Recommandations',
+    'models.hf_results':'Résultats','models.hf_empty':'Recherchez pour trouver des modèles',
+    'models.fetch':'Charger Modèles','models.fetching':'Chargement…','models.no_key':'Ajoutez une clé API',
+    'models.set_primary':'⭐ Principal','models.set_fallback':'🔁 Secours','models.test':'▶ Tester',
+    'config.keys':'🔑 Clés API','config.routing':'🗺️ Routage','config.soul':'✨ Fichier Soul',
+    'config.integrations':'🔗 Intégrations',
+    'routing.title':'Routage des Tâches','routing.primary':'Fournisseur Principal','routing.primary_model':'Modèle Principal',
+    'routing.fallback':'Fournisseur Secours','routing.rules':'Règles de Routage',
+    'routing.complexity':'Routage par Complexité','routing.threshold':'Seuil (0=toujours local, 10=toujours cloud)',
+    'routing.save':'💾 Sauvegarder',
+    'soul.title':'Fichier Soul — Identité de l\'Agent',
+    'soul.desc':'Définissez la personnalité, les valeurs et les préférences mémoire de votre agent en JSON.',
+    'soul.save':'💾 Sauvegarder','soul.reset':'↺ Réinitialiser',
+    'integ.title':'Intégrations',
+    'logs.title':'Journaux d\'Activité','logs.export':'⬇️ Exporter CSV','logs.clear':'🗑️ Tout Effacer','logs.empty':'Pas encore de journaux',
+    'tests.title':'Auto-Tests Navigateur','tests.desc':'Les tests s\'exécutent automatiquement au démarrage.',
+    'tests.run':'▶️ Relancer les Tests','tests.passed':'réussis','tests.failed':'échoués','tests.skipped':'ignorés',
+    'footer.tagline':'Local. Privé. À vous.','footer.version':'v1.0.0',
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// PROVIDERS CONFIG
+// ═══════════════════════════════════════════════════════════════════
+const PROVIDERS = {
+  groq:      { name:'Groq', icon:'⚡', color:'#F55036', endpoint:'https://api.groq.com/openai/v1/models', headers:k=>({'Authorization':`Bearer ${k}`}), parse:d=>d.data?.map(m=>({id:m.id,name:m.id,ctx:m.context_window||'N/A',caps:['chat','fast'],speed:'Ultra Fast'}))??[] },
+  kimi:      { name:'Moonshot/Kimi', icon:'🌙', color:'#6C63FF', endpoint:null, headers:k=>({'Authorization':`Bearer ${k}`}), parse:()=>[], defaults:[
+    {id:'kimi-k2-0711-preview',name:'Kimi K2 (128k)',ctx:128000,caps:['chat','reasoning']},
+    {id:'kimi-k2-0905-preview',name:'Kimi K2 (256k)',ctx:256000,caps:['chat','reasoning','long-context']},
+    {id:'kimi-k2-thinking',name:'Kimi K2 Thinking',ctx:128000,caps:['chat','reasoning','deep-think']},
+    {id:'moonshot-v1-8k',name:'Moonshot v1 8k',ctx:8192,caps:['chat','fast']},
+    {id:'moonshot-v1-32k',name:'Moonshot v1 32k',ctx:32000,caps:['chat']},
+    {id:'moonshot-v1-128k',name:'Moonshot v1 128k',ctx:128000,caps:['chat','long-context']},
+  ]},
+  openai:    { name:'OpenAI', icon:'🟢', color:'#10A37F', endpoint:'https://api.openai.com/v1/models', headers:k=>({'Authorization':`Bearer ${k}`}), parse:d=>{
+    const ids=['gpt-4o','gpt-4o-mini','gpt-4-turbo','o1','o1-mini','o3-mini'];
+    return d.data?.filter(m=>ids.some(r=>m.id.startsWith(r))).map(m=>({id:m.id,name:m.id,ctx:128000,caps:['chat',...(m.id.includes('4o')?['vision']:[]),...(m.id.startsWith('o')?['reasoning']:[])]}))??[];
+  }},
+  anthropic: { name:'Anthropic', icon:'🅰️', color:'#D4A574', endpoint:null, headers:k=>({'x-api-key':k,'anthropic-version':'2023-06-01'}), parse:()=>[], defaults:[
+    {id:'claude-opus-4-6',name:'Claude Opus 4.6',ctx:200000,caps:['chat','reasoning','code','long-context'],cost:'$15/M'},
+    {id:'claude-sonnet-4-6',name:'Claude Sonnet 4.6',ctx:200000,caps:['chat','reasoning','code'],cost:'$3/M'},
+    {id:'claude-haiku-4-5',name:'Claude Haiku 4.5',ctx:200000,caps:['chat','fast'],cost:'$0.25/M'},
+  ]},
+  google:    { name:'Google Gemini', icon:'🔷', color:'#4285F4', endpoint:'https://generativelanguage.googleapis.com/v1beta/models', headers:()=>({}), parse:(d,k)=>d.models?.filter(m=>m.name.includes('gemini')).map(m=>({id:m.name.replace('models/',''),name:m.displayName||m.name,ctx:m.inputTokenLimit||'N/A',caps:['chat','vision']}))??[], googleKey:true },
+  mistral:   { name:'Mistral', icon:'🌪️', color:'#FF7000', endpoint:'https://api.mistral.ai/v1/models', headers:k=>({'Authorization':`Bearer ${k}`}), parse:d=>d.data?.map(m=>({id:m.id,name:m.name||m.id,ctx:m.max_context_length||'N/A',caps:['chat','code']}))??[] },
+  together:  { name:'Together AI', icon:'🔗', color:'#FF6B9D', endpoint:'https://api.together.xyz/v1/models', headers:k=>({'Authorization':`Bearer ${k}`}), parse:d=>d?.filter(m=>m.type==='chat'||m.type==='language').slice(0,30).map(m=>({id:m.id,name:m.name||m.id,ctx:m.context_length||'N/A',caps:[m.type==='chat'?'chat':'completion']}))??[] },
+  cohere:    { name:'Cohere', icon:'📊', color:'#D6A5D4', endpoint:'https://api.cohere.com/v1/models', headers:k=>({'Authorization':`Bearer ${k}`,'Content-Type':'application/json'}), parse:d=>d.models?.map(m=>({id:m.name,name:m.name,ctx:m.context_length||'N/A',caps:['chat','embedding']}))??[] },
+};
+
+const INTEGRATIONS = [
+  { key:'telegram', name:'Telegram Bot', icon:'✈️', placeholder:'Bot token (from @BotFather)', desc:'Connect a Telegram bot to your agent' },
+  { key:'github', name:'GitHub', icon:'🐙', placeholder:'Personal Access Token', desc:'Access repositories and gists' },
+  { key:'notion', name:'Notion', icon:'📝', placeholder:'Integration secret', desc:'Read and write Notion pages' },
+  { key:'discord', name:'Discord', icon:'🎮', placeholder:'Bot token', desc:'Discord bot integration' },
+];
+
+const HF_RECOMMENDED = [
+  { id:'Qwen/Qwen2.5-0.5B-Instruct', name:'Qwen2.5 0.5B', size:'~1GB', ram:'2GB', ramClass:'any', caps:['chat','fast'], desc:'Ultra lightweight, mobile-friendly' },
+  { id:'microsoft/phi-2', name:'Phi-2 (2.7B)', size:'~1.5GB', ram:'3GB', ramClass:'any', caps:['chat','code'], desc:'Microsoft — great for coding tasks' },
+  { id:'TinyLlama/TinyLlama-1.1B-Chat-v1.0', name:'TinyLlama 1.1B', size:'~600MB', ram:'2GB', ramClass:'any', caps:['chat','fast'], desc:'Smallest functional chat model' },
+  { id:'Qwen/Qwen2.5-3B-Instruct', name:'Qwen2.5 3B', size:'~2GB', ram:'4GB', ramClass:'4gb', caps:['chat'], desc:'Balanced quality and speed' },
+  { id:'mistralai/Mistral-7B-Instruct-v0.3', name:'Mistral 7B', size:'~4GB', ram:'8GB', ramClass:'8gb', caps:['chat','code','reason'], desc:'Strong general-purpose model' },
+  { id:'openai/whisper-tiny', name:'Whisper Tiny', size:'~150MB', ram:'1GB', ramClass:'any', caps:['speech'], desc:'Speech-to-text, ultra fast' },
+];
+
+const DEFAULT_SOUL = {
+  name:'Fly', version:'1.0', created: new Date().toISOString(),
+  identity:{ personality:'helpful, precise, honest', language:'auto', tone:'professional' },
+  goals:['Assist efficiently','Protect privacy','Learn from context'],
+  values:['privacy','efficiency','transparency','honesty'],
+  memory:{ maxEntries:1000, retentionDays:30, indexingEnabled:true },
+  routing:{ preferLocal:false, privacyThreshold:7, complexityThreshold:6 }
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// CONFIG MANAGER (IndexedDB)
+// ═══════════════════════════════════════════════════════════════════
+class ConfigManager {
+  constructor(){ this.db=null; this._name='browserfly'; this._v=1; }
+  async init(){
+    return new Promise((res,rej)=>{
+      const req = indexedDB.open(this._name, this._v);
+      req.onupgradeneeded = e => e.target.result.createObjectStore('cfg',{keyPath:'k'});
+      req.onsuccess = e => { this.db=e.target.result; res(this); };
+      req.onerror = () => rej(req.error);
+    });
+  }
+  async get(k){ return new Promise((res,rej)=>{ const tx=this.db.transaction('cfg','readonly'); const req=tx.objectStore('cfg').get(k); req.onsuccess=()=>res(req.result?.v??null); req.onerror=()=>rej(req.error); }); }
+  async set(k,v){ return new Promise((res,rej)=>{ const tx=this.db.transaction('cfg','readwrite'); const req=tx.objectStore('cfg').put({k,v}); req.onsuccess=()=>res(true); req.onerror=()=>rej(req.error); }); }
+  async del(k){ return new Promise((res,rej)=>{ const tx=this.db.transaction('cfg','readwrite'); const req=tx.objectStore('cfg').delete(k); req.onsuccess=()=>res(true); req.onerror=()=>rej(req.error); }); }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ACTIVITY LOGGER
+// ═══════════════════════════════════════════════════════════════════
+class Logger {
+  constructor(cfg){ this.cfg=cfg; this.max=10000; }
+  async log(action, details={}, level='info'){
+    const entry={ id:crypto.randomUUID(), ts:Date.now(), iso:new Date().toISOString(), level, action, details };
+    const logs = await this.cfg.get('logs') ?? [];
+    logs.unshift(entry);
+    if(logs.length>this.max) logs.length=this.max;
+    await this.cfg.set('logs', logs);
+    window.dispatchEvent(new CustomEvent('bf:log',{detail:entry}));
+    return entry;
+  }
+  async getAll(filters={}){
+    let logs = await this.cfg.get('logs') ?? [];
+    if(filters.level) logs=logs.filter(l=>l.level===filters.level);
+    if(filters.search){ const s=filters.search.toLowerCase(); logs=logs.filter(l=>l.action.toLowerCase().includes(s)||JSON.stringify(l.details).toLowerCase().includes(s)); }
+    if(filters.from) logs=logs.filter(l=>l.ts>=new Date(filters.from).getTime());
+    if(filters.to) logs=logs.filter(l=>l.ts<=new Date(filters.to).getTime()+86399999);
+    return logs;
+  }
+  async clear(){ await this.cfg.set('logs',[]); await this.log('LOGS_CLEARED',{},'info'); }
+  async exportCSV(){
+    const logs = await this.getAll();
+    const hdr='ID,Timestamp,Level,Action,Details';
+    const rows=logs.map(l=>`${l.id},${l.iso},${l.level},${l.action},"${JSON.stringify(l.details).replace(/"/g,"'")}"`);
+    return [hdr,...rows].join('\n');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// GRAVITATIONAL MEMORY (RAG Booster)
+// ═══════════════════════════════════════════════════════════════════
+class GBit {
+  constructor(n=15){ this.n=n; this.states=this._init(); }
+  _init(){ const s=[]; for(let n=1;n<=this.n;n++) for(let l=0;l<n;l++) for(let m=-l;m<=l;m++) s.push({n,l,m,occ:false,e:-13.6/(n*n)}); return s; }
+  get capacity(){ return this.states.length; }
+  encode(bits){ for(let i=0;i<Math.min(bits.length,this.states.length);i++) this.states[i].occ=bits[i]===1; }
+  decode(){ return this.states.map(s=>s.occ?1:0); }
+}
+class GravitationalMemory {
+  constructor(cfg,chunkSize=300){ this.cfg=cfg; this.cs=chunkSize; this.pfx='gmem:'; }
+  async store(key,text){
+    const chunks=this._split(text);
+    const entry={key,text,at:Date.now(),chunks:chunks.map((c,i)=>({i,text:c,kw:this._kw(c)}))};
+    await this.cfg.set(this.pfx+key,entry); return entry;
+  }
+  async retrieve(query,topK=5){
+    const qKw=this._kw(query), res=[];
+    try{
+      const tx=this.cfg.db.transaction('cfg','readonly');
+      const store=tx.objectStore('cfg');
+      await new Promise(r=>{ const c=store.openCursor(); c.onsuccess=e=>{ const cur=e.target.result; if(!cur){r();return;} if(String(cur.key).startsWith(this.pfx)){ const ent=cur.value?.v; if(ent?.chunks) for(const ch of ent.chunks){ const sc=ch.kw.filter(w=>qKw.includes(w)).length; if(sc>0) res.push({text:ch.text,score:sc}); } } cur.continue(); }; c.onerror=r; });
+    }catch{}
+    return res.sort((a,b)=>b.score-a.score).slice(0,topK).map(r=>r.text);
+  }
+  _split(t){ const w=t.split(/\s+/),r=[]; for(let i=0;i<w.length;i+=this.cs) r.push(w.slice(i,i+this.cs).join(' ')); return r; }
+  _kw(t){ const stop=new Set(['the','a','an','is','are','was','to','of','in','on','at','for','with','this','that','it','be','as','by','or','and','but','not','le','la','les','de','du','des','un','une','en','et','ou','pour','dans','sur','est']); return t.toLowerCase().replace(/[^a-z0-9àâéèùûç\s]/g,'').split(/\s+/).filter(w=>w.length>3&&!stop.has(w)); }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// WEB WORKERS (inline Blob)
+// ═══════════════════════════════════════════════════════════════════
+const ROUTER_CODE=`self.onmessage=function(e){const{task,config}=e.data;let c=0,u=0,p=0;if(task.requiresReasoning)c+=4;if(task.multiStep)c+=3;if(task.domainSpecific)c+=3;c=Math.min(c,10);if(task.realtime)u+=5;if(task.streaming)u+=3;u=Math.min(u,10);if(task.containsPersonalData)p+=5;if(config&&config.privacyMode)p+=5;p=Math.min(p,10);const th=config&&config.threshold!=null?config.threshold:6;let d;if(p>=8)d='local';else if(c>=th)d='cloud';else if(c<=3&&u>=7)d='local';else if(config&&config.localModelReady&&c<=5)d='local';else d='cloud';self.postMessage({decision:d,complexity:c,urgency:u,privacy:p});};`;
+const INFER_CODE=`self.onmessage=async function(e){const{type,payload}=e.data;if(type==='ping'){self.postMessage({type:'pong'});return;}if(type==='infer'){self.postMessage({type:'start',model:payload.model});await new Promise(r=>setTimeout(r,400+Math.random()*800));self.postMessage({type:'result',text:'[Local inference placeholder — integrate ONNX/WebLLM]',model:payload.model,ms:Date.now()-payload.t0});}};`;
+
+class WorkerMgr {
+  constructor(){
+    this.router=null; this.infer=null;
+    try{
+      this.router=new Worker(URL.createObjectURL(new Blob([ROUTER_CODE],{type:'application/javascript'})));
+      this.infer =new Worker(URL.createObjectURL(new Blob([INFER_CODE], {type:'application/javascript'})));
+      this.infer.postMessage({type:'ping'});
+    }catch(e){ console.warn('[Workers]',e.message); }
+  }
+  async route(task,config={}){
+    if(!this.router) return 'cloud';
+    return new Promise(res=>{ const h=e=>{this.router.removeEventListener('message',h);res(e.data.decision);}; this.router.addEventListener('message',h); this.router.postMessage({task,config}); setTimeout(()=>res('cloud'),500); });
+  }
+  get count(){ return (this.router?1:0)+(this.infer?1:0); }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CAPABILITY MAP — Agent awareness of what it can/cannot do
+// ═══════════════════════════════════════════════════════════════════
+class CapabilityMap {
+  constructor(cfg){ this.cfg=cfg; this.caps={}; }
+  async scan(){
+    const caps={};
+    // Cloud providers
+    caps.cloud={};
+    for(const [k] of Object.entries(PROVIDERS)){
+      const key=await this.cfg.get(`key_${k}`);
+      caps.cloud[k]={connected:!!key};
+    }
+    // HF
+    const hfKey=await this.cfg.get('key_huggingface');
+    caps.hf={connected:!!hfKey,searchPublic:true};
+    // Local model
+    const loc=await this.cfg.get('local_model');
+    caps.local={available:!!loc,model:loc||null};
+    // Integrations
+    caps.integrations={};
+    for(const ig of INTEGRATIONS){ const k=await this.cfg.get(`key_${ig.key}`); caps.integrations[ig.key]={connected:!!k}; }
+    // Browser APIs
+    caps.browser={
+      indexedDB:  typeof indexedDB!=='undefined',
+      fetch:      typeof fetch!=='undefined',
+      webWorkers: typeof Worker!=='undefined',
+      webCrypto:  typeof crypto!=='undefined'&&!!crypto.randomUUID,
+      webGPU:     'gpu' in navigator,
+      bluetooth:  'bluetooth' in navigator,
+      usb:        'usb' in navigator,
+      nfc:        'NDEFReader' in window,
+      camera:     !!navigator.mediaDevices,
+      geolocation:'geolocation' in navigator,
+      tts:        'speechSynthesis' in window,
+      serviceWorker:'serviceWorker' in navigator,
+      notifications:'Notification' in window,
+    };
+    // Routing
+    caps.routing={
+      canUseCloud:Object.values(caps.cloud).some(p=>p.connected),
+      canUseLocal:caps.local.available,
+      connectedProviders:Object.entries(caps.cloud).filter(([,v])=>v.connected).map(([k])=>k),
+    };
+    caps.ready=caps.routing.canUseCloud||caps.routing.canUseLocal;
+    caps.warnings=[];
+    if(!caps.ready) caps.warnings.push('No AI provider configured — add an API key in Configuration');
+    if(!caps.browser.webWorkers) caps.warnings.push('Web Workers unavailable — parallel routing disabled');
+    this.caps=caps;
+    await this.cfg.set('cap_snapshot',{caps,at:Date.now()});
+    return caps;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// BROWSER SELF-TEST ENGINE (runs at startup, shown in Tests tab)
+// ═══════════════════════════════════════════════════════════════════
+async function runSelfTests(cfg, logger, memory, workers){
+  const start=Date.now();
+  const tests=[
+    // Browser APIs
+    {cat:'Browser',name:'IndexedDB',     fn:()=>typeof indexedDB!=='undefined'},
+    {cat:'Browser',name:'Fetch API',     fn:()=>typeof fetch!=='undefined'},
+    {cat:'Browser',name:'Web Workers',   fn:()=>typeof Worker!=='undefined'},
+    {cat:'Browser',name:'WebCrypto',     fn:()=>typeof crypto!=='undefined'&&!!crypto.randomUUID},
+    {cat:'Browser',name:'localStorage',  fn:()=>{try{localStorage.setItem('_bf','1');localStorage.removeItem('_bf');return true;}catch{return false;}}},
+    {cat:'Browser',name:'ServiceWorker', fn:()=>'serviceWorker' in navigator, optional:true},
+    {cat:'Browser',name:'WebGPU',        fn:()=>'gpu' in navigator, optional:true},
+    {cat:'Browser',name:'Bluetooth',     fn:()=>'bluetooth' in navigator, optional:true},
+    {cat:'Browser',name:'USB',           fn:()=>'usb' in navigator, optional:true},
+    {cat:'Browser',name:'Geolocation',   fn:()=>'geolocation' in navigator, optional:true},
+    {cat:'Browser',name:'Speech TTS',    fn:()=>'speechSynthesis' in window, optional:true},
+    {cat:'Browser',name:'Notifications', fn:()=>'Notification' in window, optional:true},
+    {cat:'Browser',name:'MediaDevices',  fn:()=>!!navigator.mediaDevices, optional:true},
+    // App internals
+    {cat:'App',name:'ConfigManager init',fn:async()=>{try{await cfg.set('_test',Date.now());const v=await cfg.get('_test');await cfg.del('_test');return v!==null;}catch{return false;}}},
+    {cat:'App',name:'Logger write',      fn:async()=>{try{await logger.log('SELF_TEST_PING',{},'debug');return true;}catch{return false;}}},
+    {cat:'App',name:'Logger read',       fn:async()=>{try{const l=await logger.getAll();return Array.isArray(l);}catch{return false;}}},
+    {cat:'App',name:'GravitationalMemory',fn:()=>memory instanceof GravitationalMemory},
+    {cat:'App',name:'GBit orbital states',fn:()=>{const b=new GBit(5);return b.capacity===55;}},
+    {cat:'App',name:'GBit encode/decode', fn:()=>{const b=new GBit(5);const bits=[1,0,1,1,0];b.encode(bits);return b.decode().slice(0,5).join('')===bits.join('');}},
+    {cat:'App',name:'Workers initialized',fn:()=>workers.count>0},
+    {cat:'App',name:'Chart.js loaded',   fn:()=>typeof Chart!=='undefined'},
+    {cat:'App',name:'i18n EN keys',      fn:()=>Object.keys(T.en).length>20},
+    {cat:'App',name:'i18n FR keys',      fn:()=>Object.keys(T.fr).length>20},
+    {cat:'App',name:'PROVIDERS defined', fn:()=>Object.keys(PROVIDERS).length>=8},
+    {cat:'App',name:'HF Recommended',    fn:()=>HF_RECOMMENDED.length>=4},
+    // Task Router logic (unit tests)
+    {cat:'Router',name:'Route: privacy→local', fn:async()=>{const d=await workers.route({containsPersonalData:true},{privacyMode:true,threshold:6});return d==='local';}},
+    {cat:'Router',name:'Route: high complexity→cloud',fn:async()=>{const d=await workers.route({requiresReasoning:true,multiStep:true},{threshold:6});return d==='cloud';}},
+    {cat:'Router',name:'Route: low+urgent→local',fn:async()=>{const d=await workers.route({realtime:true},{threshold:6});return d==='local';}},
+    {cat:'Router',name:'Route: fallback→cloud', fn:async()=>{const d=await workers.route({},{threshold:6});return d==='cloud';}},
+  ];
+
+  const results=[];
+  for(const t of tests){
+    let pass=false; let err=null;
+    try{ pass=!!(await t.fn()); }catch(e){ err=e.message; }
+    results.push({...t, pass, err, skip:t.optional&&!pass});
+  }
+
+  const passed=results.filter(r=>r.pass).length;
+  const failed=results.filter(r=>!r.pass&&!r.skip).length;
+  const skipped=results.filter(r=>r.skip).length;
+  const ms=Date.now()-start;
+
+  await logger.log('SELF_TEST_COMPLETE',{passed,failed,skipped,ms,
+    failedTests:results.filter(r=>!r.pass&&!r.skip).map(r=>r.name)
+  }, failed>0?'warning':'success');
+
+  return {results,passed,failed,skipped,ms};
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════════════════════════════════
+let lang='en';
+let cfg, logger, memory, workers, caps;
+const modelStore={};  // providerKey → models[]
+let primaryModel=null, fallbackModel=null;
+let chart=null;
+
+// ═══════════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════════
+const t=k=>T[lang][k]||T.en[k]||k;
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{ el.placeholder=t(el.dataset.i18nPlaceholder); });
+}
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+  const tab=document.getElementById('tab-'+id);
+  if(tab){ tab.classList.add('active'); if(id==='logs') renderLogs(); }
+  document.getElementById('mainNav')?.classList.remove('open');
+  logger?.log('TAB_SWITCHED',{tab:id},'debug');
+}
+function switchSub(parent,id){
+  parent.querySelectorAll('.sub-btn').forEach(b=>b.classList.toggle('active',b.dataset.sub===id));
+  parent.querySelectorAll('.sub-panel').forEach(p=>p.classList.toggle('active',p.id==='sub-'+id));
+}
+function capBadge(label,cls=''){return`<span class="cap-badge ${cls}">${label}</span>`;}
+function mBadge(cap){ const map={'chat':'mb-chat Chat','vision':'mb-vision Vision','reasoning':'mb-reason Reasoning','code':'mb-code Code','fast':'mb-fast Fast','long-context':'mb-long Long-ctx','reason':'mb-reason Reasoning','speech':'mb-chat STT','embedding':'mb-code Embed','deep-think':'mb-reason Deep Think','completion':'mb-chat Completion'}; const v=map[cap]; if(!v) return ''; const[cls,...rest]=v.split(' '); return`<span class="mbadge ${cls}">${rest.join(' ')}</span>`; }
+const ramCls={'any':'ram-any','4gb':'ram-4gb','8gb':'ram-8gb','gpu':'ram-gpu'};
+const ramLabel={'any':'Any Device','4gb':'4GB RAM','8gb':'8GB RAM+','gpu':'GPU Required'};
+
+// ═══════════════════════════════════════════════════════════════════
+// BACKGROUND BUTTERFLIES (JS-generated SVG)
+// ═══════════════════════════════════════════════════════════════════
+function makeBgButterflies(){
+  const wrap=document.getElementById('bgWrap');
+  const svgTpl=`<svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="bwt" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6C63FF"/><stop offset="100%" stop-color="#00D4FF"/></linearGradient><linearGradient id="bwb" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF6B9D"/><stop offset="100%" stop-color="#6C63FF"/></linearGradient></defs><path d="M60,50 C45,35 18,18 8,28 C2,36 18,48 38,52Z" fill="url(#bwt)" opacity=".9"/><path d="M60,50 C75,35 102,18 112,28 C118,36 102,48 82,52Z" fill="url(#bwt)" opacity=".9"/><path d="M60,54 C40,60 20,72 18,84 C16,90 36,90 52,76Z" fill="url(#bwb)" opacity=".8"/><path d="M60,54 C80,60 100,72 102,84 C104,90 84,90 68,76Z" fill="url(#bwb)" opacity=".8"/><ellipse cx="60" cy="52" rx="3" ry="20" fill="#0A0A0F"/></svg>`;
+  for(let i=0;i<8;i++){
+    const d=document.createElement('div');
+    d.className='bgbf';
+    d.innerHTML=svgTpl;
+    wrap.appendChild(d);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// AGENT STATUS BAR
+// ═══════════════════════════════════════════════════════════════════
+async function updateAgentBar(){
+  const c=caps.caps;
+  const line=document.getElementById('agentStatusLine');
+  const capDiv=document.getElementById('agentCaps');
+  const dot=document.getElementById('statusDot');
+  if(!line||!capDiv) return;
+
+  if(c.ready){
+    line.textContent=`Ready — ${c.routing.connectedProviders.join(', ')||'Local model'} ${workers.count>0?`· ${workers.count} Workers`:''}`;
+    dot.style.background='var(--ok)';
+    dot.style.boxShadow='0 0 8px var(--ok)';
+  } else {
+    line.textContent='No provider configured — add an API key';
+    dot.style.background='var(--warn)';
+    dot.style.boxShadow='0 0 8px var(--warn)';
+  }
+
+  const badges=[];
+  if(c.ready) badges.push(capBadge(c.routing.canUseCloud?'☁️ Cloud':'','ok'));
+  if(c.local.available) badges.push(capBadge('🏠 Local','ok'));
+  if(!c.ready) badges.push(capBadge('⚠️ No Provider','warn'));
+  if(c.browser.webGPU) badges.push(capBadge('🎮 WebGPU','ok'));
+  if(c.browser.webWorkers) badges.push(capBadge(`⚙️ ${workers.count}W`,'ok'));
+  for(const [k,v] of Object.entries(c.integrations)) if(v.connected) badges.push(capBadge(k,'ok'));
+  capDiv.innerHTML=badges.join('');
+
+  document.getElementById('statProviders').textContent=c.routing.connectedProviders.length;
+  document.getElementById('statWorkers').textContent=workers.count;
+  document.getElementById('statPrivacy').textContent=c.routing.canUseCloud&&c.routing.canUseLocal?'HYBRID':c.routing.canUseLocal?'LOCAL':'CLOUD';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// STATS UPDATE
+// ═══════════════════════════════════════════════════════════════════
+async function updateStats(){
+  const total=Object.values(modelStore).flat().length;
+  document.getElementById('statModels').textContent=total;
+  const logs=await logger.getAll();
+  document.getElementById('statLogs').textContent=logs.length;
+  if(primary) document.getElementById('statModels').textContent=total;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CHART
+// ═══════════════════════════════════════════════════════════════════
+function initChart(){
+  const ctx=document.getElementById('reqChart');
+  if(!ctx||typeof Chart==='undefined') return;
+  const days=7,labels=[],cloud=[],local=[];
+  for(let i=days-1;i>=0;i--){ const d=new Date(Date.now()-i*86400000); labels.push(d.toLocaleDateString(lang,{weekday:'short'})); cloud.push(Math.floor(Math.random()*30)); local.push(Math.floor(Math.random()*15)); }
+  chart=new Chart(ctx,{ type:'line', data:{ labels, datasets:[
+    {label:'Cloud',data:cloud,borderColor:'#6C63FF',backgroundColor:'rgba(108,99,255,.12)',tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#6C63FF'},
+    {label:'Local',data:local,borderColor:'#00D4FF',backgroundColor:'rgba(0,212,255,.08)',tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#00D4FF'},
+  ]}, options:{ responsive:true,maintainAspectRatio:false, plugins:{legend:{labels:{color:'#7070A0',font:{family:'Syne'}}}}, scales:{ x:{ticks:{color:'#7070A0'},grid:{color:'rgba(108,99,255,.08)'}}, y:{ticks:{color:'#7070A0'},grid:{color:'rgba(108,99,255,.08)'},beginAtZero:true} } } });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RECENT ACTIVITY FEED
+// ═══════════════════════════════════════════════════════════════════
+const ICONS={'API_KEY_SAVED':'🔑','API_KEY_DELETED':'🗑️','MODELS_FETCHED':'🔍','MODEL_SET_PRIMARY':'⭐','MODEL_SET_FALLBACK':'🔁','ROUTING_SAVED':'🗺️','SOUL_SAVED':'✨','LANGUAGE_CHANGED':'🌐','TAB_SWITCHED':'📑','SELF_TEST_COMPLETE':'🧪','CAPABILITY_SCAN':'📡','STARTUP_COMPLETE':'🚀','LOGS_CLEARED':'🗑️'};
+function addToFeed(entry){
+  const feed=document.getElementById('recentFeed');
+  if(!feed) return;
+  const empty=feed.querySelector('.empty'); if(empty) empty.remove();
+  const el=document.createElement('div');
+  el.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(108,99,255,.08);font-size:.8rem';
+  el.innerHTML=`<span style="font-size:1rem">${ICONS[entry.action]||'📋'}</span><span style="flex:1;color:var(--tx)">${entry.action.replace(/_/g,' ')}</span><span style="color:var(--txm);font-size:.72rem">${new Date(entry.ts).toLocaleTimeString()}</span>`;
+  feed.insertBefore(el,feed.firstChild);
+  while(feed.children.length>10) feed.removeChild(feed.lastChild);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// LOGS RENDER
+// ═══════════════════════════════════════════════════════════════════
+async function renderLogs(){
+  const level=document.getElementById('logLevelFilter')?.value||'';
+  const search=document.getElementById('logSearch')?.value||'';
+  const from=document.getElementById('logFrom')?.value||'';
+  const to=document.getElementById('logTo')?.value||'';
+  const logs=await logger.getAll({level,search,from,to});
+  const list=document.getElementById('logList');
+  if(!list) return;
+  if(!logs.length){ list.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-txt">${t('logs.empty')}</div></div>`; return; }
+  list.innerHTML=logs.slice(0,200).map(l=>`<div class="log-entry"><div class="log-dot ${l.level}"></div><div class="log-time">${new Date(l.ts).toLocaleTimeString()}</div><div class="log-action">${l.action}</div><div class="log-detail">${Object.keys(l.details).length?JSON.stringify(l.details).slice(0,120):''}</div></div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SELF-TEST RENDER
+// ═══════════════════════════════════════════════════════════════════
+function renderTests(res){
+  document.getElementById('testPass').textContent=res.passed;
+  document.getElementById('testFail').textContent=res.failed;
+  document.getElementById('testSkip').textContent=res.skipped;
+  document.getElementById('testTime').textContent=`${res.ms}ms`;
+
+  const grid=document.getElementById('testGrid');
+  const cats=[...new Set(res.results.map(r=>r.cat))];
+  grid.innerHTML=cats.map(cat=>`
+    <div style="grid-column:1/-1;font-size:.72rem;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.08em;margin-top:8px">${cat}</div>
+    ${res.results.filter(r=>r.cat===cat).map(r=>`
+      <div class="test-row">
+        <span class="test-icon">${r.pass?'✅':r.skip?'⏭':'❌'}</span>
+        <span class="test-name">${r.name}</span>
+        <span class="test-result ${r.pass?'pass':r.skip?'skip':'fail'}">${r.pass?'PASS':r.skip?'SKIP':'FAIL'}</span>
+      </div>
+    `).join('')}
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// API KEYS PANEL
+// ═══════════════════════════════════════════════════════════════════
+async function renderApiKeys(){
+  const panel=document.getElementById('apiKeysPanel');
+  if(!panel) return;
+  const allKeys=[
+    ...Object.entries(PROVIDERS).map(([k,p])=>({key:k, name:p.name, icon:p.icon})),
+    {key:'huggingface', name:'HuggingFace', icon:'🤗'},
+    ...INTEGRATIONS.map(i=>({key:i.key, name:i.name, icon:i.icon})),
+  ];
+  let html=`<div class="panel-title">🔑 <span>${t('config.keys')}</span></div><div style="display:flex;flex-direction:column;gap:14px">`;
+  for(const {key,name,icon} of allKeys){
+    const val=await cfg.get(`key_${key}`)||'';
+    const hasKey=!!val;
+    html+=`<div>
+      <div class="form-label">${icon} ${name}</div>
+      <div class="api-row">
+        <input type="password" class="form-input" id="key_${key}" value="${val}" placeholder="Enter API key for ${name}" autocomplete="off">
+        <span class="api-status ${hasKey?'valid':'empty'}" id="status_${key}">${hasKey?'✅ SET':'—'}</span>
+        <button class="btn btn-p btn-sm" onclick="saveKey('${key}')">Save</button>
+        ${hasKey?`<button class="btn btn-err btn-sm" onclick="deleteKey('${key}')">Del</button>`:''}
+      </div>
+    </div>`;
+  }
+  html+='</div>';
+  panel.innerHTML=html;
+}
+
+async function saveKey(key){
+  const el=document.getElementById(`key_${key}`);
+  const val=el?.value?.trim();
+  if(!val){ alert('Please enter a value'); return; }
+  await cfg.set(`key_${key}`,val);
+  const st=document.getElementById(`status_${key}`);
+  if(st){ st.textContent='✅ SET'; st.className='api-status valid'; }
+  await logger.log('API_KEY_SAVED',{provider:key},'success');
+  // Rescan capabilities
+  await caps.scan();
+  await updateAgentBar();
+  updateStats();
+}
+async function deleteKey(key){
+  if(!confirm(`Delete API key for ${key}?`)) return;
+  await cfg.del(`key_${key}`);
+  await logger.log('API_KEY_DELETED',{provider:key},'info');
+  await renderApiKeys();
+  await caps.scan();
+  await updateAgentBar();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CLOUD PROVIDERS
+// ═══════════════════════════════════════════════════════════════════
+async function renderCloudProviders(){
+  const grid=document.getElementById('cloudProvidersGrid');
+  if(!grid) return;
+  grid.innerHTML='';
+  for(const [key,prov] of Object.entries(PROVIDERS)){
+    const apiKey=await cfg.get(`key_${key}`)||'';
+    const hasKey=!!apiKey;
+    const div=document.createElement('div');
+    div.className='panel';
+    div.style.cssText='padding:18px;background:var(--bg2)';
+    div.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:1.4rem">${prov.icon}</span>
+          <span style="font-weight:700;font-size:.95rem">${prov.name}</span>
+        </div>
+        <span class="api-status ${hasKey?'valid':'empty'}">${hasKey?'✅ Ready':'⚠️ No key'}</span>
+      </div>
+      <div id="prov_${key}">
+        ${hasKey?`<button class="btn btn-p btn-sm" style="width:100%" onclick="fetchModels('${key}')">${t('models.fetch')}</button>`:`<div style="font-size:.78rem;color:var(--txm);text-align:center;padding:8px">${t('models.no_key')}</div>`}
+      </div>`;
+    grid.appendChild(div);
+    // If we already have models loaded, render them
+    if(modelStore[key]?.length) renderModels(key,modelStore[key]);
+  }
+}
+
+async function fetchModels(key){
+  const prov=PROVIDERS[key];
+  const apiKey=await cfg.get(`key_${key}`);
+  if(!apiKey){ alert(`Add API key for ${prov.name} first`); return; }
+  const container=document.getElementById(`prov_${key}`);
+  if(!container) return;
+  container.innerHTML=`<div class="loading-wrap"><div class="spinner"></div> ${t('models.fetching')}</div>`;
+  await logger.log('MODELS_FETCH_START',{provider:key},'info');
+  try{
+    let models=[];
+    if(prov.defaults&&!prov.endpoint){ models=prov.defaults; }
+    else{
+      const url=prov.googleKey?`${prov.endpoint}?key=${apiKey}`:prov.endpoint;
+      const resp=await fetch(url,{headers:prov.headers(apiKey)});
+      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data=await resp.json();
+      models=prov.parse(data,apiKey);
+    }
+    modelStore[key]=models;
+    renderModels(key,models);
+    await logger.log('MODELS_FETCHED',{provider:key,count:models.length},'success');
+    updateStats();
+    // Update routing selects
+    buildRoutingSelects();
+  }catch(e){
+    container.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;
+    await logger.log('MODELS_FETCH_FAIL',{provider:key,error:e.message},'error');
+  }
+}
+
+function renderModels(key,models){
+  const container=document.getElementById(`prov_${key}`);
+  if(!container) return;
+  if(!models.length){ container.innerHTML=`<div class="empty"><div class="empty-icon">📭</div><div class="empty-txt">No models found</div></div>`; return; }
+  container.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">${models.map(m=>`
+    <div class="model-card ${m.id===primaryModel?'primary':m.id===fallbackModel?'fallback':''}" style="padding:12px 14px">
+      ${m.id===primaryModel?'<span class="model-tag tag-primary">PRIMARY</span>':''}
+      ${m.id===fallbackModel?'<span class="model-tag tag-fallback">FALLBACK</span>':''}
+      <div class="model-name">${m.name}</div>
+      <div class="model-badges">${(m.caps||[]).map(c=>mBadge(c)).join('')}</div>
+      <div class="model-meta" style="margin:8px 0">
+        <div class="model-meta-row"><span>Context:</span><span class="model-meta-val">${typeof m.ctx==='number'?m.ctx.toLocaleString():m.ctx} tokens</span></div>
+        ${m.cost?`<div class="model-meta-row"><span>Cost:</span><span class="model-meta-val">${m.cost}</span></div>`:''}
+        ${m.speed?`<div class="model-meta-row"><span>Speed:</span><span class="model-meta-val">${m.speed}</span></div>`:''}
+      </div>
+      <div class="model-actions">
+        <button class="btn btn-s btn-sm" onclick="setModel('primary','${m.id}','${key}')">${t('models.set_primary')}</button>
+        <button class="btn btn-s btn-sm" onclick="setModel('fallback','${m.id}','${key}')">${t('models.set_fallback')}</button>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+async function setModel(role,id,key){
+  if(role==='primary'){ primaryModel=id; await cfg.set('primary_model',{id,key}); await logger.log('MODEL_SET_PRIMARY',{model:id,provider:key},'success'); }
+  else{ fallbackModel=id; await cfg.set('fallback_model',{id,key}); await logger.log('MODEL_SET_FALLBACK',{model:id,provider:key},'success'); }
+  renderModels(key,modelStore[key]||[]);
+  await caps.scan(); await updateAgentBar();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// HUGGINGFACE
+// ═══════════════════════════════════════════════════════════════════
+function ramClass(sizeStr){
+  const n=parseFloat(sizeStr); if(isNaN(n)) return 'any';
+  if(n<1.5) return 'any'; if(n<3) return '4gb'; if(n<6) return '8gb'; return 'gpu';
+}
+function renderHFCard(m,isRec=false){
+  const rc=isRec?m.ramClass:ramClass(m.size||'');
+  return`<div class="model-card" style="padding:14px">
+    <div class="model-name" style="margin-bottom:4px">${m.name||m.id}</div>
+    ${isRec?`<div style="font-size:.72rem;color:var(--txm);margin-bottom:6px">${m.desc||''}</div>`:''}
+    <div class="model-badges" style="margin-bottom:8px">${(m.caps||[]).map(c=>mBadge(c)).join('')}</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+      ${m.size?`<span style="font-size:.7rem;color:var(--txm)">💾 ${m.size}</span>`:''}
+      ${isRec?`<span class="ram-badge ${ramCls[rc]}">${ramLabel[rc]}</span>`:''}
+      ${m.downloads?`<span style="font-size:.7rem;color:var(--txm)">⬇️ ${(m.downloads/1000).toFixed(0)}K</span>`:''}
+      ${m.likes?`<span style="font-size:.7rem;color:var(--txm)">❤️ ${m.likes}</span>`:''}
+    </div>
+    <a href="https://huggingface.co/${m.id||m.modelId}" target="_blank" class="btn btn-s btn-sm" style="font-size:.72rem;text-decoration:none">Open on HuggingFace ↗</a>
+  </div>`;
+}
+function renderHFRecommended(){
+  const el=document.getElementById('hfRecommended');
+  if(el) el.innerHTML=HF_RECOMMENDED.map(m=>renderHFCard(m,true)).join('');
+}
+async function searchHF(){
+  const query=document.getElementById('hfQuery')?.value?.trim()||'';
+  const task=document.getElementById('hfTask')?.value||'text-generation';
+  const el=document.getElementById('hfResults');
+  if(!el) return;
+  if(!query){ el.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><div class="empty-txt">${t('models.hf_empty')}</div></div>`; return; }
+  el.innerHTML=`<div class="loading-wrap"><div class="spinner"></div> Searching HuggingFace…</div>`;
+  try{
+    const hfKey=await cfg.get('key_huggingface')||'';
+    const hdrs={'Content-Type':'application/json'}; if(hfKey) hdrs['Authorization']=`Bearer ${hfKey}`;
+    const params=new URLSearchParams({search:query,filter:task,sort:'downloads',direction:'-1',limit:'20',full:'true'});
+    const resp=await fetch(`https://huggingface.co/api/models?${params}`,{headers:hdrs});
+    if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data=await resp.json();
+    if(!data.length){ el.innerHTML=`<div class="empty"><div class="empty-icon">😶</div><div class="empty-txt">No results for "${query}"</div></div>`; return; }
+    el.innerHTML=`<div class="grid2">${data.slice(0,12).map(m=>renderHFCard({id:m.modelId||m.id,name:m.id,downloads:m.downloads,likes:m.likes,caps:['chat'],size:'?'},false)).join('')}</div>`;
+    await logger.log('HF_SEARCH',{query,task,results:data.length},'info');
+  }catch(e){
+    el.innerHTML=`<div class="alert alert-err">Search failed: ${e.message}</div>`;
+    await logger.log('HF_SEARCH_FAIL',{query,error:e.message},'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ROUTING
+// ═══════════════════════════════════════════════════════════════════
+function buildRoutingSelects(){
+  const pSel=document.getElementById('routePrimary');
+  const fSel=document.getElementById('routeFallback');
+  if(!pSel||!fSel) return;
+  const opts='<option value="">— Select —</option>'+Object.entries(PROVIDERS).map(([k,p])=>`<option value="${k}">${p.icon} ${p.name}</option>`).join('');
+  pSel.innerHTML=opts; fSel.innerHTML='<option value="">— None —</option>'+Object.entries(PROVIDERS).map(([k,p])=>`<option value="${k}">${p.icon} ${p.name}</option>`).join('');
+}
+function renderRoutingRules(){
+  const el=document.getElementById('routingRules');
+  if(!el) return;
+  const rules=[
+    {id:'privacy',icon:'🔒',name:'Privacy Mode',desc:'Force local model when personal data detected'},
+    {id:'costCap',icon:'💰',name:'Cost Cap',desc:'Prefer local when cloud cost exceeds threshold'},
+    {id:'offline',icon:'📵',name:'Offline Fallback',desc:'Auto-fallback to local if cloud API fails'},
+    {id:'lowLatency',icon:'⚡',name:'Low Latency Priority',desc:'Prefer local for real-time tasks'},
+  ];
+  el.innerHTML=rules.map(r=>`<div class="rule-card"><span class="rule-icon">${r.icon}</span><div class="rule-info"><div class="rule-name">${r.name}</div><div class="rule-desc">${r.desc}</div></div><label class="toggle"><input type="checkbox" id="rule_${r.id}"><span class="toggle-slider"></span></label></div>`).join('');
+}
+async function saveRouting(){
+  const primary=document.getElementById('routePrimary')?.value;
+  const fallback=document.getElementById('routeFallback')?.value;
+  const threshold=document.getElementById('complexThreshold')?.value;
+  await cfg.set('routing',{primary,fallback,threshold:parseInt(threshold)});
+  await logger.log('ROUTING_SAVED',{primary,fallback,threshold},'success');
+  alert('Routing saved ✅');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SOUL FILE
+// ═══════════════════════════════════════════════════════════════════
+async function loadSoul(){
+  const saved=await cfg.get('soul');
+  const ed=document.getElementById('soulEditor');
+  if(ed) ed.value=JSON.stringify(saved||DEFAULT_SOUL,null,2);
+}
+async function saveSoul(){
+  const ed=document.getElementById('soulEditor');
+  try{
+    const val=JSON.parse(ed?.value||'{}');
+    await cfg.set('soul',val);
+    await logger.log('SOUL_SAVED',{name:val.name||'?'},'success');
+    alert('Soul file saved ✅');
+  }catch(e){ alert('Invalid JSON: '+e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INTEGRATIONS
+// ═══════════════════════════════════════════════════════════════════
+async function renderIntegrations(){
+  const grid=document.getElementById('integrationsGrid');
+  if(!grid) return;
+  let html='';
+  for(const ig of INTEGRATIONS){
+    const val=await cfg.get(`key_${ig.key}`)||'';
+    html+=`<div class="panel" style="padding:16px;background:var(--bg2)">
+      <div style="font-size:1.4rem;margin-bottom:8px">${ig.icon}</div>
+      <div style="font-weight:700;margin-bottom:4px">${ig.name}</div>
+      <div style="font-size:.75rem;color:var(--txm);margin-bottom:12px">${ig.desc}</div>
+      <div class="form-group" style="margin:0">
+        <input type="password" class="form-input" id="key_${ig.key}" value="${val}" placeholder="${ig.placeholder}" style="margin-bottom:8px">
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-p btn-sm" onclick="saveKey('${ig.key}')">Save</button>
+          ${val?`<button class="btn btn-err btn-sm" onclick="deleteKey('${ig.key}')">Remove</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }
+  grid.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// EVENT WIRING
+// ═══════════════════════════════════════════════════════════════════
+function wireEvents(){
+  // Tab nav
+  document.querySelectorAll('.nav-btn[data-tab]').forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.tab)));
+  // Lang
+  document.querySelectorAll('.lang-btn').forEach(btn=>btn.addEventListener('click',async()=>{
+    lang=btn.dataset.lang;
+    document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b===btn));
+    applyLang();
+    await cfg.set('lang',lang);
+    await logger.log('LANGUAGE_CHANGED',{language:lang},'info');
+  }));
+  // Mobile menu
+  document.getElementById('menuBtn')?.addEventListener('click',()=>document.getElementById('mainNav')?.classList.toggle('open'));
+  // Sub-tabs
+  document.querySelectorAll('.sub-btn').forEach(btn=>btn.addEventListener('click',()=>switchSub(btn.closest('.tab'),btn.dataset.sub)));
+  // Logs filters
+  ['logLevelFilter','logSearch','logFrom','logTo'].forEach(id=>document.getElementById(id)?.addEventListener('input',renderLogs));
+  document.getElementById('exportLogsBtn')?.addEventListener('click',async()=>{const csv=await logger.exportCSV();const b=new Blob([csv],{type:'text/csv'});const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(b),download:`bf-logs-${new Date().toISOString().slice(0,10)}.csv`});a.click();URL.revokeObjectURL(a.href);await logger.log('LOGS_EXPORTED',{},'info');});
+  document.getElementById('clearLogsBtn')?.addEventListener('click',async()=>{if(confirm('Clear all logs?')){await logger.clear();renderLogs();}});
+  // Models
+  document.getElementById('hfSearchBtn')?.addEventListener('click',searchHF);
+  document.getElementById('hfQuery')?.addEventListener('keydown',e=>e.key==='Enter'&&searchHF());
+  // Config
+  document.getElementById('saveRoutingBtn')?.addEventListener('click',saveRouting);
+  document.getElementById('saveSoulBtn')?.addEventListener('click',saveSoul);
+  document.getElementById('resetSoulBtn')?.addEventListener('click',()=>{const ed=document.getElementById('soulEditor');if(ed)ed.value=JSON.stringify(DEFAULT_SOUL,null,2);});
+  // Slider
+  document.getElementById('complexThreshold')?.addEventListener('input',function(){document.getElementById('complexThresholdVal').textContent=this.value;});
+  // Tests re-run
+  document.getElementById('runTestsBtn')?.addEventListener('click',async()=>{document.getElementById('testGrid').innerHTML='<div class="loading-wrap"><div class="spinner"></div> Running…</div>';const res=await runSelfTests(cfg,logger,memory,workers);renderTests(res);});
+  // Log events → feed
+  window.addEventListener('bf:log',e=>{ addToFeed(e.detail); updateStats(); });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// STARTUP
+// ═══════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // 1. Init core systems
+    cfg     = new ConfigManager();    await cfg.init();
+    logger  = new Logger(cfg);
+    memory  = new GravitationalMemory(cfg);
+    workers = new WorkerMgr();
+    caps    = new CapabilityMap(cfg);
+
+    // 2. Restore language
+    const savedLang = await cfg.get('lang') || 'en';
+    lang = savedLang;
+    document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
+    applyLang();
+
+    // 3. Restore models state
+    const pm = await cfg.get('primary_model');
+    const fm = await cfg.get('fallback_model');
+    if(pm){ primaryModel=pm.id; }
+    if(fm){ fallbackModel=fm.id; }
+
+    // 4. Build UI
+    makeBgButterflies();
+    wireEvents();
+    initChart();
+    renderHFRecommended();
+    buildRoutingSelects();
+    renderRoutingRules();
+    await renderApiKeys();
+    await renderCloudProviders();
+    await renderIntegrations();
+    await loadSoul();
+
+    // 5. Capability scan — agent learns what it can/cannot do
+    await caps.scan();
+    await updateAgentBar();
+
+    await logger.log('APP_STARTED', {lang, workers:workers.count, providers:Object.keys(PROVIDERS).length}, 'info');
+
+    // 6. Browser self-tests (auto, results shown in Tests tab)
+    const testRes = await runSelfTests(cfg, logger, memory, workers);
+    renderTests(testRes);
+
+    // 7. Final log
+    await logger.log('STARTUP_COMPLETE', {
+      testsPassed: `${testRes.passed}/${testRes.passed+testRes.failed+testRes.skipped}`,
+      agentReady: caps.caps.ready,
+      connectedProviders: caps.caps.routing?.connectedProviders || []
+    }, testRes.failed > 0 ? 'warning' : 'success');
+
+    // 8. Update stats
+    await updateStats();
+    await renderLogs();
+
+  } catch(err) {
+    console.error('[Browserfly] Fatal startup error:', err);
+    document.getElementById('agentStatusLine').textContent = 'Startup error: ' + err.message;
+  }
+});
+</script>
+</body>
+</html>
